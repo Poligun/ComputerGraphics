@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script type="text/javascript" src="../vendor/jquery.js"></script>
+    <script type="text/javascript" src="../painter/painter.js"></script>
+</head>
+<body>
+    <div style="margin-left: 10%; ">
+    <h3>Bezier Painter</h3>
+    <canvas id="mainCanvas" width="1024px" height="800px" style="background-color: #bbb"></canvas>
+    </div>
+    <script type="text/javascript">
+        $(function() {
+            initializePainter(document.getElementById('mainCanvas'));
+        });
+    </script>
+</body>

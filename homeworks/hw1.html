@@ -1,0 +1,69 @@
+<script src="../script/lib1.js"></script>
+
+<h3>Archimedean Spiral</h3>
+<canvas id='canvas1' width='640' height='640'></canvas>
+
+<script id='my_vertex_shader' type='x-shader/x-vertex'>
+   attribute vec3 aPosition;
+   varying   vec3 vPosition;
+   void main() {
+      gl_Position = vec4(aPosition, 1.0);
+      vPosition = aPosition;
+   }
+</script>
+
+<!!==========================================================================
+
+   Below is the fragment shader from class (with some slight improvements).
+
+   Your assignment is to write your own interesting fragment shader program.
+   Try to have fun with it -- use "uTime" to create animated patterns, and
+   "uCursor" to make it responsive to a user's mouse gestures.
+
+   Try to make something as completely different from my "easter egg" example
+   as possible :-)
+
+============================================================================>
+
+<script id="my_fragment_shader" type="x-shader/x-fragment">
+    #define pi 3.1415926535
+
+    precision mediump float;
+    uniform float uTime;
+    uniform vec3 uCursor;
+    varying vec3 vPosition;
+
+    void main() {
+        float x = vPosition.x;
+        float y = vPosition.y;
+        float r = sqrt(x * x + y * y);
+        float a;
+        float k = 0.05;
+
+        if (x == 0.0)
+            a = (y > 0.0) ? pi / 2.0 : (y < 0.0) ? -pi / 2.0 : 0.0;
+        else if (x > 0.0)
+            a = atan(y, x);
+        else
+            a = atan(y, x) + (y >= 0.0 ? pi : -pi);
+
+        a = mod(a + 2.0 * uTime, 2.0 * pi);
+
+        if (a >= 2.0 * pi)
+            a -= 2.0 * pi;
+
+        gl_FragColor = vec4(abs(sin(uTime)), abs(cos(uTime)), abs(tan(uTime)), 1.0);
+
+        for (int i = -10; i < 10; i++)
+            if (abs(r - (a + float(i) * pi) * k) < 0.03)
+                gl_FragColor = vec4(abs(sin(a)), abs(sin(r)), abs(cos(a + r)), 1.0);
+
+    }
+</script>
+
+
+<script>
+start_gl('canvas1', document.getElementById('my_vertex_shader'  ).innerHTML,
+                    document.getElementById('my_fragment_shader').innerHTML);
+</script>
+

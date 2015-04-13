@@ -1,0 +1,250 @@
+<ul class="list-group">
+  <li class="list-group-item"><input id="using_phong" type="checkbox">Blinn</li>
+  <li class="list-group-item"><input id="using_boolean" class="form-control" type="checkbox">Boolean Intersection</li>
+</ul>
+
+<canvas id='canvas1' width="640" height="640" style="margin-top: 5px;"></canvas>
+
+<script src="../script/lib2.js"></script>
+
+<script id='my_vertex_shader' type='x-shader/x-vertex'>
+    attribute vec3 aPosition;
+    varying   vec3 vPosition;
+
+    void main()
+    {
+        gl_Position = vec4(aPosition, 1.0);
+        vPosition = aPosition;
+    }
+</script>
+
+<script id='my_fragment_shader' type='x-shader/x-fragment'>
+    #define INF 100000.0
+    #define PI 3.1415926535
+    #define PHONG_POWER_COEF 15.0
+    #define BLINN_POWER_COEF 30.0
+
+    #define NUM_OF_SPHERES 3
+    #define NUM_OF_LIGHTS 2
+    #define BACKGROUND_COLOR vec4(0.0, 0.0, 0.0, 1.0)
+
+    precision mediump float;
+
+    uniform float uTime;
+    uniform vec3 uCursor;
+    varying vec3 vPosition;
+
+    uniform bool uBlinn;
+    uniform bool uBoolean;
+    uniform bool uReflection;
+
+    vec4 spheres[NUM_OF_SPHERES];
+    vec3 ambientColors[NUM_OF_SPHERES];
+    vec3 diffuseColors[NUM_OF_SPHERES];
+    vec3 specularColors[NUM_OF_SPHERES];
+
+    vec4 targetSphere;
+    vec3 targetAmbient;
+    vec3 targetDiffuse;
+    vec3 targetSpecular;
+
+    vec3 lightColors[NUM_OF_LIGHTS];
+    vec3 lightDirections[NUM_OF_LIGHTS];
+
+    vec3 focusPosition;
+
+    float traceSphere(vec3 source, vec3 direction, vec3 sphere, float radius)
+    {
+        vec3 u = source - sphere;
+        vec3 v = direction;
+
+        float a = 1.0;
+        float b = 2.0 * dot(u, v);
+        float c = dot(u, u) - radius * radius;
+
+        float delta = b * b - 4.0 * a * c;
+
+        return (delta >= 0.0) ? ((-b) - sqrt(delta)) / (2.0 * a) : INF;
+    }
+
+    bool traceLight(vec3 source, vec3 lightDirection)
+    {
+        for (int i = 0; i < NUM_OF_SPHERES; i++) {
+            float t = traceSphere(source, lightDirection, spheres[i].xyz, spheres[i].w);
+            if (t > 0.0 && t < INF)
+                return false;
+        }
+        return true;
+    }
+
+    float phong(vec3 normal, vec3 eyeDirection, vec3 lightDirection)
+    {
+        vec3 r = 2.0 * dot(normal, lightDirection) * normal - lightDirection;
+        return pow(max(0.0, dot(eyeDirection, r)), PHONG_POWER_COEF);
+    }
+
+    float blinn(vec3 normal, vec3 eyeDirection, vec3 lightDirection)
+    {
+        vec3 h = normalize(lightDirection + eyeDirection);
+        return pow(max(0.0, dot(normal, h)), BLINN_POWER_COEF);
+    }
+
+    vec3 shadeReflection(vec3 point, vec4 targetSphere, vec3 targetAmbient, vec3 targetDiffuse, vec3 targetSpecular)
+    {
+        vec3 normal = normalize(point - targetSphere.xyz);
+        vec3 eye = normalize(focusPosition - point);
+        vec3 color = targetAmbient;
+
+        for (int i = 0; i < NUM_OF_LIGHTS; i++) {
+            if (traceLight(point, lightDirections[i])) {
+                if (dot(normal, lightDirections[i]) <0.0) continue;
+                color += lightColors[i] * (targetDiffuse * max(0.0, dot(normal, lightDirections[i]))
+                      + targetSpecular * (uBlinn ? blinn(normal, eye, lightDirections[i]) : phong(normal, eye, lightDirections[i])));
+            }
+        }
+
+        return color;
+    }
+
+    vec3 computeReflection(vec3 source, vec3 normal, vec3 eyeDirection)
+    {
+        vec3 outComingDirection = normalize(2.0 * dot(normal, eyeDirection) * normal - eyeDirection);
+        float minimumT = INF;
+        vec4 targetSphere;
+        vec3 targetAmbient, targetDiffuse, targetSpecular;
+
+        for (int i = 0; i < NUM_OF_SPHERES; i++) {
+            float t = traceSphere(source, outComingDirection, spheres[i].xyz, spheres[i].w);
+            if (t > 0.0 && t < minimumT) {
+                minimumT = t;
+                targetSphere = spheres[i];
+                targetAmbient = ambientColors[i];
+                targetDiffuse = diffuseColors[i];
+                targetSpecular = specularColors[i];
+            }
+        }
+
+        return shadeReflection(source + minimumT * outComingDirection, targetSphere, targetAmbient, targetDiffuse, targetSpecular);
+    }
+
+    vec4 shadeSphere(vec3 point)
+    {
+        vec3 normal = normalize(point - targetSphere.xyz);
+        vec3 eye = normalize(focusPosition - point);
+        vec3 color = targetAmbient;
+
+        for (int i = 0; i < NUM_OF_LIGHTS; i++) {
+            if (traceLight(point, lightDirections[i])) {
+                color += lightColors[i] * (targetDiffuse * max(0.0, dot(normal, lightDirections[i]))
+                      + targetSpecular * (uBlinn ? blinn(normal, eye, lightDirections[i]) : phong(normal, eye, lightDirections[i])));
+            }
+            if (uReflection) {
+                color += computeReflection(point, normal, eye);
+            }
+        }
+
+        return vec4(color, 1.0);
+    }
+
+    void castRay()
+    {
+        vec3 direction = normalize(vec3(vPosition.x, vPosition.y, 0) - focusPosition);
+        float t;
+        float minimumT = INF;
+
+        for (int i = 0; i < NUM_OF_SPHERES; i++) {
+            t = traceSphere(focusPosition, direction, spheres[i].xyz, spheres[i].w);
+            if (t < minimumT) {
+                minimumT = t;
+                targetSphere = spheres[i];
+                targetAmbient = ambientColors[i];
+                targetDiffuse = diffuseColors[i];
+                targetSpecular = specularColors[i];
+            }
+        }
+
+        if (minimumT < INF)
+            gl_FragColor = shadeSphere(focusPosition + minimumT * direction);
+        else
+            gl_FragColor = BACKGROUND_COLOR;
+    }
+
+    void booleanIntersection()
+    {
+        vec3 direction = normalize(vec3(vPosition.x, vPosition.y, 0) - focusPosition);
+        float maximumIn = 0.0;
+        float minimumOut = INF;
+
+        for (int i = 0; i < NUM_OF_SPHERES; i++) {
+            vec3 u = focusPosition - spheres[i].xyz;
+            vec3 v = direction;
+            float a = 1.0;
+            float b = 2.0 * dot(u, v);
+            float c = dot(u, u) - spheres[i].w * spheres[i].w;
+            float delta = b * b - 4.0 * a * c;
+
+            if (delta < 0.0) {
+                gl_FragColor = BACKGROUND_COLOR;
+                return;
+            }
+
+            float t1 = ((-b) - sqrt(delta)) / (2.0 * a);
+            float t2 = ((-b) + sqrt(delta)) / (2.0 * a);
+
+            if (t1 > maximumIn) {
+                maximumIn = t1;
+                targetSphere = spheres[i];
+                targetAmbient = ambientColors[i];
+                targetDiffuse = diffuseColors[i];
+                targetSpecular = specularColors[i];
+            }
+            if (t2 < minimumOut) minimumOut = t2;
+        }
+
+        if (maximumIn < minimumOut && minimumOut < INF)
+            gl_FragColor = shadeSphere(focusPosition + maximumIn * direction);
+        else
+            gl_FragColor = BACKGROUND_COLOR;
+    }
+
+    void initialize()
+    {
+        focusPosition = vec3(0.0, 0.0, -4.0);
+
+        lightColors[0] = vec3(1.0, 0.5, 0.0);
+        lightDirections[0] = normalize(vec3(uCursor.x, uCursor.y, 2.0 - 2.0 * dot(uCursor.xy, uCursor.xy)));
+
+        lightColors[1] = vec3(0.6, 0.6, 0.6);
+        lightDirections[1] = normalize(vec3(sin(uTime), cos(uTime), -1.0));
+
+        spheres[0] = vec4(0.0, -0.5, 3.5, 0.6);
+        ambientColors[0] = vec3(0.4, 0.4, 0.4);
+        diffuseColors[0] = vec3(0.6, 0.6, 0.6);
+        specularColors[0] = vec3(0.2, 0.2, 0.4);
+
+        float theta = uTime / 3.0 * PI;
+        float phi = PI / 4.0;
+
+        spheres[1] = vec4(0.0, 0.5, 3.5, 0.6);
+        //spheres[1] = vec4(cos(theta) * sin(phi), cos(theta) * cos(phi), 2.0 + sin(theta), 0.3);
+        ambientColors[1] = vec3(0.4, 0.2, 0.2);
+        diffuseColors[1] = vec3(0.2, 0.2, 0.2);
+        specularColors[1] = vec3(0.6, 0.6, 0.6);
+
+        spheres[2] = vec4(-0.5, 0.0, 3.5, 0.5);
+        ambientColors[2] = vec3(0.2, 0.2, 0.4);
+        diffuseColors[2] = vec3(0.4, 0.4, 0.4);
+        specularColors[2] = vec3(0.5, 0.5, 0.5);
+    }
+
+    void main()
+    {
+        initialize();
+        uBoolean ? booleanIntersection() : castRay();
+    }
+</script>
+
+<script>
+start_gl('canvas1', document.getElementById('my_vertex_shader'  ).innerHTML,
+                    document.getElementById('my_fragment_shader').innerHTML);
+</script>
