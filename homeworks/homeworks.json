@@ -1,0 +1,22 @@
+{
+    "hw1": "hw1.html",
+    "hw2": "hw2.html",
+    "hw3": {
+        "Phong & Blinn": "hw3.html",
+        "Reflection": "hw3-reflection.html"
+    },
+    "hw4": "hw4.html",
+    "hw5": {
+        "sphere": "hw5-sphere.html",
+        "teapot": "hw5-teapot.html",
+        "portalgun": "hw5-portalgun.html",
+        "kasumi": "hw5-kasumi.html",
+        "tunnel": "hw5-tunnel.html"
+    },
+    "hw6": {
+        "wave": "hw6-wave.html"
+    },
+    "hw7": {
+        "painter": "hw7-painter.html"
+    }
+}

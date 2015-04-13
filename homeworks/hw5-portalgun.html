@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" type="text/css" href="../css/interface.css">
+    <script type="text/javascript" src="../vendor/jquery.js"></script>
+    <script type="text/javascript" src="../canvas3d/canvas3d.js"></script>
+    <script type="text/javascript" src="../canvas3d/canvas3d-math.js"></script>
+    <script type="text/javascript" src="../canvas3d/canvas3d-camera.js"></script>
+    <script type="text/javascript" src="../canvas3d/canvas3d-objects.js"></script>
+</head>
+<body>
+<canvas id="mainCanvas" tabindex="1" width="1200px" height="1200px"></canvas>
+<script type="text/javascript">
+$(document).ready(function() {
+    var canvas = $('#mainCanvas')[0];
+
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    //canvas.width = canvas.height = Math.min(window.innerWidth, window.innerHeight);
+
+    var canvas3d = new Canvas3d.Canvas3d(canvas);
+    var camera = canvas3d.scene.camera;
+
+    //var object = new Canvas3d.Sphere(1, 20, 30);
+    //canvas3d.scene.objects.push(object);
+    canvas3d.loadObject('../canvas3d/models/portalgun.model', function(object) {
+        object.translate(-0.3, 0, -4.5);
+    }, function(timePast, object) {
+        object.rotate('y', timePast / 1000 * Math.PI / 4);
+    });
+
+    canvas3d.start();
+
+    var speed = 0.2;
+    var angle = 1 * Math.PI / 180;
+    var boxSize = 100;
+    var boxWidth = boxSize / canvas.width;
+    var boxHeight = boxSize / canvas.height;
+
+    $('#mainCanvas')/*.mousemove(function(event) {
+        var x = event.offsetX / canvas.width * 2 - 1;
+        var y = event.offsetY / canvas.height * 2 - 1;
+        var alpha = 0.0, beta = 0.0;
+
+        console.log(x + ', ' + y);
+        if (Math.abs(x) > boxWidth)
+            camera.rotate(0, x, 0);
+        if (Math.abs(y) > boxHeight)
+            camera.rotate(y, 0, 0);
+
+    })*/.keydown(function(event) {
+        var keyCode = event.keyCode;
+
+        //W key
+        if (keyCode == 87)
+            camera.move(0, 0, -speed);
+        //S key
+        if (keyCode == 83)
+            camera.move(0, 0, speed);
+        //A key
+        if (keyCode == 65)
+            camera.move(-speed, 0, 0);
+        //D key
+        if (keyCode == 68)
+            camera.move(speed, 0, 0);
+        //Q key
+        if (keyCode == 81)
+            camera.move(0, speed, 0);
+        //E key
+        if (keyCode == 69)
+            camera.move(0, -speed, 0);
+
+        //Left key
+        if  (keyCode == 37) {
+            camera.rotate(0, angle, 0);
+            event.preventDefault();
+        }
+        //Up key
+        if  (keyCode == 38) {
+            camera.rotate(angle, 0, 0);
+            event.preventDefault();
+        }
+        //Right key
+        if  (keyCode == 39) {
+            camera.rotate(0, -angle, 0);
+            event.preventDefault();
+        }
+        //Down key
+        if  (keyCode == 40) {
+            camera.rotate(-angle, 0, 0);
+            event.preventDefault();
+        }
+    }).focus();
+});
+</script>
+</body>
+</html>

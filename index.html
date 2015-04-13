@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html ng-app="gallery">
+<head>
+    <meta charset="UTF-8">
+    <script type="text/javascript" src="vendor/jquery.js"></script>
+    <script type="text/javascript" src="vendor/bootstrap.js"></script>
+    <script type="text/javascript" src="vendor/angular.js"></script>
+    <script type="text/javascript" src="script/gallery.js"></script>
+    <link rel="stylesheet" type="text/css" href="css/bootstrap.css">
+</head>
+<body ng-controller="GalleryController">
+<div style="margin-left: 10px">
+    <h3>Computer Graphics<h3>
+</div>
+<nav class="navbar navbar-default">
+    <div class="container-fluid">
+        <div class="navbar-header">
+            <a class="navbar-brand" href="#">Assignments</a>
+        </div>
+        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+            <ul class="nav navbar-nav">
+                <li ng-repeat="(homework, link) in homeworks" ng-class="{dropdown: !isString(link)}">
+                    <a ng-if="isString(link)" ng-click="changeUrl(link)" href="#">{{homework}}</a>
+                    <a ng-if="!isString(link)" href="#" class="dropdown-toggle" data-toggle="dropdown">
+                        {{homework}} <span class="caret"></span>
+                    </a>
+                    <ul ng-if="!isString(link)" class="dropdown-menu" role="menu">
+                        <li ng-repeat="(homework, link) in link">
+                            <a ng-click="changeUrl(link)" href="#">{{homework}}</a>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+<div ng-include="url" style="width: 100%; margin-left: auto; margin-right: auto;">
+</div>
+</body>
+</html>

@@ -1,2 +1,2 @@
 # ComputerGraphics
-NYU Files sucks and I have to migrate all the works here.
+NYU Files sucks with poor implemented file management and unfriendly interface so I have to migrate all the works here.
