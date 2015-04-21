@@ -7,7 +7,7 @@ galleryApp.controller('GalleryController', ['$scope', '$http', '$location', func
     $scope.homeworks = {};
     $scope.url = "";
     $scope.changeUrl = function(url) {
-        if (url.match(/^hw[56].*$/))
+        if (url.match(/^hw[568].*$/))
             window.location.href = homeworkUrlPrefix + url;//$location.url(url);
         else
             $scope.url = homeworkUrlPrefix + url;
