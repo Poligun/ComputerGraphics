@@ -6,7 +6,6 @@
     <script type="text/javascript" src="../vendor/three.js"></script>
     <script type="text/javascript" src="../script/hw8.js"></script>
 
-
     <script id='my_vertex_shader' type='x-shader/x-vertex'>
 
         varying vec3 vPosition;
@@ -64,29 +63,20 @@
         {
             float t = 0.0, p = 1.0;
             for (int i = 0; i < 5; i++) {
-                t += noise(p * location) / p;
-                p *= 2.0;
-            }
-            return 1.5 * vec3(t * mixer.r, t * mixer.g, pow(t, 1.0) * mixer.b);
-        }
-
-        vec3 turbulence(vec3 location, vec3 mixer)
-        {
-            float t = 0.0, p = 1.0;
-            for (int i = 0; i < 5; i++) {
                 t += abs(noise(p * location)) / p;
                 p *= 2.0;
             }
+            return t * mixer;
             t *= 0.8;
-            float s = pow(0.5 + 0.6 * cos(5.0 * location.x + 12.0 * t), 0.1);
-            return vec3(s * mixer.r, s * s * mixer.g, s * s * s * mixer.b);
+            float s = pow(0.5 + 0.5 * sin(12.0 * t), 0.1);
+            return vec3(s * s * mixer.r, s * s * mixer.g, s * s * mixer.b);
+            return 1.5 * vec3(t * mixer.r, t * t * mixer.g, pow(t, 1.0) * mixer.b);
         }
 
         void main()
         {
             float c = 0.2 * vPosition.x + 0.3 * dot(vNormal, vPosition);
-            gl_FragColor = vec4(turbulence(vPosition, 1.0 * vec3(1.0, 1.0, 1.0)), 1.0);
-            //gl_FragColor = vec4(0.5 * (vPosition.y + vPosition.z), c * c, sin(c), 1.0);
+            gl_FragColor = vec4(fractal(vPosition, 1.0 * vec3(0.8, 0.75, 0.8)), 1.0);
         }
     </script>
 </body>
