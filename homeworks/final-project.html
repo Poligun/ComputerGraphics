@@ -2,23 +2,27 @@
     <h3>Final Project</h3>
     <p>Source Code:
         <a href="https://github.com/Poligun/RayTracer">https://github.com/Poligun/RayTracer</a>
-        <h5>Currently Supported Features</h5>
+        <h4>Currently Supported Features</h4>
         <ul>
             <li>Read / Write Bitmap</li>
             <li>Multi Thread Rendering</li>
             <li>Phong / Blinn Light</li>
             <li>Recursive Reflection / Refraction (Using Fresnel Equation)</li>
-            <li>Load Geometry from OBJ File (Triangular Face Only)</li>
-            <li>Vertex Normal Interpolation to Smooth Object</li>
-            <li>Basic Texture Material from Bitmap</li>
+            <li>Load geometries from .obj files (Triangular faces only)</li>
+            <li>Vertex Normal Interpolation to Smooth Object: vn = (1 - u - v) * vn0 + u * vn1 + v * vn2 (See the teapot model)</li>
+            <li>Basic UV Texture Mapping</li>
         </ul>
-        <h5>Future Improvements</h5>
+        <h4>Future Improvements</h4>
         <ul>
-            <li>Faster Triangle Intersection Calculation</li>
+            <li>Faster triangle intersection calculation</li>
+            <li>Full support of .obj and .mtl file format</li>
             <li>Introduce CUDA Framework</li>
             <li>Support more image formats</li>
+            <li>Read scenes from XML files</li>
+            <li>Animation<li>
         </ul>
     </p>
+    <h4>Rendered Pictures<h4>
     <p>
         <h5>Sphere (Blinn Light)</h5>
         <img src="pictures/sphere.jpg">
